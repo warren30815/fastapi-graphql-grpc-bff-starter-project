@@ -1,0 +1,28 @@
+[project]
+name = "fastapi-graphql-grpc"
+version = "0.1.0"
+description = "FastAPI BFF with GraphQL and gRPC integration"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.104.1",
+    "uvicorn[standard]>=0.24.0",
+    "strawberry-graphql[fastapi]>=0.215.1",
+    "grpcio>=1.59.0",
+    "grpcio-tools>=1.59.0",
+    "pydantic>=2.5.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.4.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.7.0",
+]
