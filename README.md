@@ -1,33 +1,40 @@
-# FastAPI GraphQL gRPC Full Stack Project
+# FastAPI GraphQL gRPC Microservices Project
 
-A full-stack project with a Backend for Frontend (BFF) service built with FastAPI that provides both REST and GraphQL endpoints, with gRPC integration for microservice communication.
+A microservices architecture project with a Backend for Frontend (BFF) service built with FastAPI that provides both REST and GraphQL endpoints, with gRPC communication between independent microservices.
 
-## Project Structure
+## Architecture
 
+### Tech Stack
+- **FastAPI**: Main BFF web framework
+- **Strawberry**: GraphQL implementation
+- **gRPC**: Microservice communication protocol
+- **PostgreSQL**: Database for each microservice
+- **SQLAlchemy**: ORM with separate databases per service
+- **Alembic**: Database migrations per service
+- **Pydantic**: Data validation
+- **UV**: Package management
+
+### Microservices Design
+Each microservice is completely self-contained with:
+- Independent database and schema
+- Own migration system (Alembic)
+- Separate configuration and environment variables
+- Individual deployment capability
+- Internal database implementation hidden from clients
+
+## Database Setup
+
+Each microservice requires its own PostgreSQL database:
+
+```sql
+-- Create databases for each service
+CREATE DATABASE user_service;
+
+-- Optional: Create separate users for each service
+CREATE USER user_service_user WITH PASSWORD 'password';
+
+GRANT ALL PRIVILEGES ON DATABASE user_service TO user_service_user;
 ```
-├── backend/           # Backend API service
-│   ├── app/          # FastAPI application
-│   │   ├── api/      # REST API endpoints
-│   │   ├── graphql/  # GraphQL schema and resolvers
-│   │   ├── grpc/     # gRPC clients and servers
-│   │   │   ├── clients/   # gRPC client implementations
-│   │   │   ├── servers/   # gRPC server implementations
-│   │   │   └── config/    # gRPC configuration
-│   │   └── models/   # Data models
-│   ├── main.py       # FastAPI server entry point
-│   ├── generated/    # Generated protobuf files
-│   └── protos/       # Protocol buffer definitions
-├── frontend/          # Frontend application (coming soon)
-└── README.md         # This file
-```
-
-## Features
-
-- **FastAPI** REST endpoints
-- **GraphQL** endpoint using Strawberry
-- **gRPC** client for microservice communication
-- **Async** support throughout
-- **UV** package management
 
 ## Setup
 
@@ -46,37 +53,36 @@ uv sync
 uv run python scripts/generate_protos.py
 ```
 
-4. Copy environment variables:
+4. Configure each microservice:
 ```bash
-cp .env.example .env
+# Copy environment files for each service
+cp app/grpc/servers/user/.env.example app/grpc/servers/user/.env
+
+# Edit the .env files with your database credentials
 ```
 
-5. Start the User Service gRPC server (in one terminal):
+5. Run database migrations for each service:
 ```bash
-uv run python app/grpc/servers/user_server.py
+# User service migrations
+cd app/grpc/servers/user
+# Generate migration file
+dotenv -f .env -- alembic -c alembic_user_service.ini revision --autogenerate -m "Initial migration"
+# Deploy to db
+dotenv -f .env -- alembic -c alembic_user_service.ini upgrade head
 ```
 
-6. Start the Product Service gRPC server (in another terminal):
+6. Start the microservices:
 ```bash
-uv run python app/grpc/servers/product_server.py
-```
+# Terminal 1: User Service
+uv run python app/grpc/servers/user/user_server.py
 
-7. Start the FastAPI server (in a third terminal):
-```bash
+# Terminal 2: BFF Service
 uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-## Endpoints
+## Swagger API Docs
 
-### REST API
-- `GET /` - Health check
-- `GET /api/users/{user_id}` - Get user by ID
-- `POST /api/users` - Create new user
-- `GET /api/health` - Health check
-
-### GraphQL
-- `POST /graphql` - GraphQL endpoint
-- `GET /graphql` - GraphQL playground
+Visit `/docs`
 
 ## gRPC Client Connection Management
 
@@ -111,25 +117,24 @@ mutation {
 ## Microservices
 
 ### User Service (Port 5001)
-- Handles user-related operations
-- Provides gRPC endpoints for user management
-- Default port: 5001 (configurable via `USER_SERVICE_PORT`)
-
-### Product Service (Port 5002)
-- Handles product-related operations
-- Provides gRPC endpoints for product management
-- Default port: 5002 (configurable via `PRODUCT_SERVICE_PORT`)
+- **Purpose**: Handles user-related operations
+- **Database**: Independent PostgreSQL database (`user_service`)
+- **Port**: 5001 (configurable via `USER_SERVICE_PORT`)
+- **Location**: `app/grpc/servers/user/`
+- **Features**:
+  - User CRUD operations
+  - Email uniqueness validation
+  - Separate Alembic migrations
+  - Independent database schema
+  - Self-contained configuration
 
 ### BFF Service (Port 8000)
-- Backend for Frontend service
-- Aggregates microservices via gRPC
-- Provides REST and GraphQL endpoints
-- Runs on port 8000
-
-## Architecture
-
-- **FastAPI**: Main web framework
-- **Strawberry**: GraphQL implementation
-- **gRPC**: Microservice communication
-- **Pydantic**: Data validation
-- **UV**: Package management
+- **Purpose**: Backend for Frontend service
+- **Responsibilities**: Aggregates microservices via gRPC
+- **Endpoints**: REST and GraphQL APIs
+- **Port**: 8000
+- **Features**:
+  - Service orchestration
+  - API gateway functionality
+  - Singleton gRPC client management
+  - Request/response transformation
