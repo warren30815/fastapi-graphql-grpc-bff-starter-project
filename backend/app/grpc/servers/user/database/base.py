@@ -34,7 +34,7 @@ class BaseDatabaseConnection:
         self.config = config
         self.engine = create_engine(
             config.database_url,
-            pool_pre_ping=True
+            pool_size=10  # Connection pool size
         )
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
         self.Base = declarative_base()

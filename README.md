@@ -74,10 +74,10 @@ dotenv -f .env -- alembic -c alembic_user_service.ini upgrade head
 6. Start the microservices:
 ```bash
 # Terminal 1: User Service
-uv run python app/grpc/servers/user/user_server.py
+dotenv -f .env -- uv run python app/grpc/servers/user/user_server.py
 
 # Terminal 2: BFF Service
-uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+dotenv -f .env -- uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ## Swagger API Docs

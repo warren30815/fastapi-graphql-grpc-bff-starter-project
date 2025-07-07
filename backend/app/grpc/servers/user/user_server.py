@@ -1,15 +1,14 @@
 import grpc
 from concurrent import futures
 import logging
-from typing import Dict, List
 import os
 
 from generated import user_pb2
 from generated import user_pb2_grpc
 from app.grpc.servers.interceptors import LoggingInterceptor
 from app.grpc.servers.graceful_server import GracefulGRPCServer
-from .database.connection import get_user_db_session
-from .database.models import User
+from app.grpc.servers.user.database.connection import get_user_db_session
+from app.grpc.servers.user.database.models import User
 from sqlalchemy.exc import IntegrityError
 
 
