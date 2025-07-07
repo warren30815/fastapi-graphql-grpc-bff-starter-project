@@ -11,20 +11,6 @@ A self-contained microservice responsible for user management operations.
 - gRPC server interface
 - Independent configuration and deployment
 
-## Database Schema
-
-### User Table
-```sql
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    is_active BOOLEAN DEFAULT TRUE NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE ON UPDATE CURRENT_TIMESTAMP
-);
-```
-
 ## Configuration
 
 Copy and configure the environment file:
@@ -34,50 +20,47 @@ cp .env.example .env
 
 ## Database Setup
 
-1. Create the database:
+Create the database:
 ```sql
 CREATE DATABASE user_service;
 ```
 
-2. Run migrations:
-```bash
-alembic -c alembic_user_service.ini revision --autogenerate -m "Initial migration"
-alembic -c alembic_user_service.ini upgrade head
-```
-
-3. Seed data (optional):
-```bash
-python seed_user_data.py
-```
-
 ## Running the Service
 
+### Using Start Script
 ```bash
-# From the user service directory
-python user_server.py
+# Start the server
+./start.sh
 
-# Or from the backend root
-uv run python app/grpc/servers/user/user_server.py
+# Or with specific operations
+./start.sh migrate <migration_name>     # Create new migration
+./start.sh migrate-deploy               # Deploy migrations with backup
+./start.sh restore-db <backup_file>      # Restore from backup
+./start.sh reset-db                     # Reset database (destructive)
+./start.sh migrate-history              # Show migration history
+./start.sh migrate-current              # Show current migration
 ```
 
 ## Development
 
 ### Adding New Migrations
 ```bash
-dotenv -f .env -- alembic -c alembic_user_service.ini revision --autogenerate -m "Description of changes"
-dotenv -f .env -- alembic -c alembic_user_service.ini upgrade head
+# Using the start script
+./start.sh migrate "Description of changes"
+./start.sh migrate-deploy
 ```
 
 ### Database Reset
 ```bash
-# Drop and recreate database
-dotenv -f .env -- alembic -c alembic_user_service.ini downgrade base
-dotenv -f .env -- alembic -c alembic_user_service.ini upgrade head
+# Using the start script
+./start.sh reset-db
 ```
 
-## Deployment
+### Database Backup & Restore
+```bash
+# Backup is automatically created during migrate-deploy
+./start.sh migrate-deploy
 
-This service can be deployed independently as a Docker container or standalone process. It only requires:
-- PostgreSQL database connection
-- Environment configuration
-- Network access on the configured port
+# Manual restore
+./start.sh restore-db ./db_backups/backup_20250707_164231.dump
+```

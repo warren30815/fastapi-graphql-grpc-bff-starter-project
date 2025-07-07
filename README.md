@@ -65,19 +65,18 @@ cp app/grpc/servers/user/.env.example app/grpc/servers/user/.env
 ```bash
 # User service migrations
 cd app/grpc/servers/user
-# Generate migration file
-dotenv -f .env -- alembic -c alembic_user_service.ini revision --autogenerate -m "Initial migration"
-# Deploy to db
-dotenv -f .env -- alembic -c alembic_user_service.ini upgrade head
+# sync db schema
+sh ./start.sh sync
 ```
 
 6. Start the microservices:
 ```bash
 # Terminal 1: User Service
-dotenv -f .env -- uv run python app/grpc/servers/user/user_server.py
+cd app/grpc/servers/user
+sh ./start.sh
 
-# Terminal 2: BFF Service
-dotenv -f .env -- uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+# Terminal 2: BFF Service (from backend directory)
+sh ./start.sh {dev|prod}
 ```
 
 ## Swagger API Docs
