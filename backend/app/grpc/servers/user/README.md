@@ -34,8 +34,7 @@ CREATE DATABASE user_service;
 
 # Or with specific operations
 ./start.sh migrate <migration_name>     # Create new migration
-./start.sh migrate-deploy               # Deploy migrations with backup
-./start.sh restore-db <backup_file>      # Restore from backup
+./start.sh migrate-deploy               # Deploy migrations
 ./start.sh reset-db                     # Reset database (destructive)
 ./start.sh migrate-history              # Show migration history
 ./start.sh migrate-current              # Show current migration
@@ -56,11 +55,14 @@ CREATE DATABASE user_service;
 ./start.sh reset-db
 ```
 
-### Database Backup & Restore
+### Database Backup and Restore
 ```bash
-# Backup is automatically created during migrate-deploy
-./start.sh migrate-deploy
+# Create a database backup
+./backup.sh backup
 
-# Manual restore
-./start.sh restore-db ./db_backups/backup_20250707_164231.dump
+# List available backups
+./backup.sh list
+
+# Restore from a backup
+./backup.sh restore ./db_backups/backup_20250806_085512.dump
 ```

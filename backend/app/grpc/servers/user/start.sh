@@ -27,61 +27,8 @@ case "$1" in
 
   migrate-deploy)
     echo "🔄 Deploying pending migrations to production..."
-
-    # === Step 1: Backup ===
-    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-    BACKUP_DIR="./db_backups"
-    BACKUP_FILE="$BACKUP_DIR/backup_${TIMESTAMP}.dump"
-
-    mkdir -p "$BACKUP_DIR"
-
-    echo "🧰 Backing up database before migration to $BACKUP_FILE..."
-    PGPASSWORD="$USER_DB_PASSWORD" pg_dump -U "$USER_DB_USER" -h "$USER_DB_HOST" -p "$USER_DB_PORT" -d "$USER_DB_NAME" -F c -f "$BACKUP_FILE"
-
-    if [ $? -ne 0 ]; then
-      echo "❌ Database backup failed. Aborting migration."
-      exit 1
-    fi
-
-    echo "✅ Database backup completed."
-
-    # === Step 2: Deploy migration ===
     alembic upgrade head
     echo "✅ Production migrations deployed."
-    ;;
-
-  restore-db)
-    echo "♻️  Restoring database from backup..."
-
-    if [ -z "$2" ]; then
-      echo "Usage: ./start.sh restore-db <backup_file.dump>"
-      exit 1
-    fi
-
-    BACKUP_FILE="$2"
-
-    if [ ! -f "$BACKUP_FILE" ]; then
-      echo "❌ Backup file not found: $BACKUP_FILE"
-      exit 1
-    fi
-
-    echo "🧨 Dropping and recreating database '$USER_DB_NAME'..."
-    PGPASSWORD="$USER_DB_PASSWORD" dropdb -U "$USER_DB_USER" -h "$USER_DB_HOST" -p "$USER_DB_PORT" "$USER_DB_NAME"
-    if [ $? -ne 0 ]; then
-      echo "❌ Failed to drop database. Aborting restore."
-      exit 1
-    fi
-
-    PGPASSWORD="$USER_DB_PASSWORD" createdb -U "$USER_DB_USER" -h "$USER_DB_HOST" -p "$USER_DB_PORT" "$USER_DB_NAME"
-    if [ $? -ne 0 ]; then
-      echo "❌ Failed to create database. Aborting restore."
-      exit 1
-    fi
-
-    echo "🔁 Restoring from $BACKUP_FILE..."
-    PGPASSWORD="$USER_DB_PASSWORD" pg_restore -U "$USER_DB_USER" -h "$USER_DB_HOST" -p "$USER_DB_PORT" -d "$USER_DB_NAME" "$BACKUP_FILE"
-
-    echo "✅ Restore complete."
     ;;
 
   reset-db)
